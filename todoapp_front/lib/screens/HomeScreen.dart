@@ -101,7 +101,7 @@ class _HomeState extends State<Home> {
                   FlatButton(
                     onPressed: () => myController.text == ''
                         ? print("nothing")
-                        : _add(myController.text),
+                        : {_add(myController.text), myController.clear()},
                     child: Text("ADD"),
                   )
                 ],
