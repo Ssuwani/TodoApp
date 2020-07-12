@@ -16,12 +16,14 @@ class _HomeState extends State<Home> {
     _load();
   }
 
+  String main_url = 'http://jsuwan.pythonanywhere.com';
+  // String main_url = 'http://192.168.0.8:5000';
   List _todo = [
     {"name": "nothing", "done": false}
   ];
 
   void _load() async {
-    String url = 'http://192.168.0.8:5000/load';
+    String url = main_url + '/load';
     List todoList;
     try {
       var response = await http.get(url);
@@ -42,7 +44,7 @@ class _HomeState extends State<Home> {
   }
 
   void _add(String text) async {
-    String url = 'http://192.168.0.8:5000/add';
+    String url = main_url + '/add';
     Map<String, String> headers = {"Content-type": "application/json"};
     String data = text;
     var response = await http.post(url, headers: headers, body: data);
@@ -53,7 +55,7 @@ class _HomeState extends State<Home> {
   }
 
   void _doneOrNot(int index) async {
-    String url = 'http://192.168.0.8:5000/doneOrNot';
+    String url = main_url + '/doneOrNot';
     Map<String, String> headers = {"Content-type": "application/json"};
     String data = index.toString();
     var response = await http.post(url, headers: headers, body: data);
@@ -65,7 +67,7 @@ class _HomeState extends State<Home> {
 
   void _remove(int index) async {
     print("HI");
-    String url = 'http://192.168.0.8:5000/remove';
+    String url = main_url + '/remove';
     Map<String, String> headers = {"Content-type": "application/json"};
     String data = index.toString();
     var response = await http.post(url, headers: headers, body: data);
@@ -106,24 +108,39 @@ class _HomeState extends State<Home> {
               )),
           Container(
             margin: EdgeInsets.all(20),
-            child: Center(
-                child: Text("Todo List", style: TextStyle(fontSize: 32))),
+            child: _todo.length != 0
+                ? Center(
+                    child: Text("Todo List", style: TextStyle(fontSize: 32)))
+                : SizedBox(
+                    height: 2,
+                  ),
           ),
           Container(
-            child: Expanded(
-              child: new ListView.builder(
-                itemCount: _todo.length,
-                itemBuilder: (context, index) {
-                  bool value =
-                      "${_todo[index]['done']}" == 'true' ? true : false;
-                  return CheckboxListTile(
-                      value: value,
-                      onChanged: (bool value) => _doneOrNot(index),
-                      title: Text("${_todo[index]["name"]}"));
-                },
-              ),
-            ),
-          ),
+              child: _todo.length != 0
+                  ? Expanded(
+                      child: new ListView.builder(
+                        itemCount: _todo.length,
+                        itemBuilder: (context, index) {
+                          bool value = "${_todo[index]['done']}" == 'true'
+                              ? true
+                              : false;
+                          return Dismissible(
+                            key: UniqueKey(),
+                            onDismissed: (direction) =>
+                                _remove(int.parse("${_todo[index]["id"]}")),
+                            child: CheckboxListTile(
+                                value: value,
+                                onChanged: (bool value) => _doneOrNot(
+                                    int.parse("${_todo[index]["id"]}")),
+                                title: Text("${_todo[index]["name"]}")),
+                          );
+                        },
+                      ),
+                    )
+                  : Center(
+                      child: Text("No data, Add Todo",
+                          style: TextStyle(fontSize: 32, color: Colors.blue)),
+                    )),
         ],
       ),
     );

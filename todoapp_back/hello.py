@@ -1,20 +1,19 @@
 from flask import Flask, request, jsonify
-
+from multiprocessing import Value
 app = Flask(__name__)
-
+counter = Value('i', 1)
 todo_list = [
-    {
-        "id": 0,
-        "name": "Todo App 만들기",
-        "done": False
-    },
-    {
-        "id": 1,
-        "name": "깃 커밋하기",
-        "done": True
-    }
+    # {
+    #     "id": 0,
+    #     "name": "Todo App 만들기",
+    #     "done": False
+    # },
+    # {
+    #     "id": 1,
+    #     "name": "깃 커밋하기",
+    #     "done": True
+    # }
 ]
-
 @app.route('/load', methods=['GET', 'POST'])
 def load():
     return jsonify(todo_list)
@@ -22,7 +21,12 @@ def load():
 @app.route('/add', methods=['GET', 'POST'])
 def addTodo():
     new_task = dict()
-    new_task["id"] = len(todo_list)
+    with counter.get_lock():
+        out = counter.value
+        new_task['id'] = out
+        counter.value += 1
+
+
     if request.method == 'POST':
         task = request.data.decode('utf8')
         new_task["name"] = task
@@ -54,8 +58,14 @@ def doneOrNot():
 @app.route('/remove', methods=['GET', 'POST'])
 def removeTodo():
     if request.method == 'POST':
-        remove_index = request.data.decode('utf8')
-        del todo_list[int(remove_index)]
+        print(todo_list)
+        removeID = request.data.decode('utf8')
+        print(removeID)
+        for index, todo in enumerate(todo_list):
+            if todo['id'] == int(removeID):
+                del todo_list[index]
+                print("없앰..")
+                break
         return jsonify(todo_list)
     else:
         return print("error")
